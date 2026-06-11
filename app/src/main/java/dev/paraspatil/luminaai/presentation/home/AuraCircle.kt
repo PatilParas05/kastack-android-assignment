@@ -1,14 +1,8 @@
 package dev.paraspatil.luminaai.presentation.home
 
-import androidx.compose.animation.core.EaseInOutSine
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,7 +18,7 @@ import dev.paraspatil.luminaai.ui.theme.LuminaAITheme
 fun AuraCircle(
     isListening: Boolean,
     amplitude: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier.fillMaxSize() // Default to filling the available space
 ) {
     // 1. Idle State Animation (Breathing)
     val infiniteTransition = rememberInfiniteTransition(label = "aura_breathing")

@@ -12,7 +12,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import dev.paraspatil.luminaai.domain.SyncWorker
+import dev.paraspatil.luminaai.data.sync.SyncWorker
 import dev.paraspatil.luminaai.presentation.home.HomeScreen
 import dev.paraspatil.luminaai.presentation.onboarding.OnboardingScreen
 import dev.paraspatil.luminaai.ui.theme.LuminaAITheme
