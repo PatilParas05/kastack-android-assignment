@@ -9,8 +9,11 @@ import dev.paraspatil.luminaai.data.local.MessageMeta
 import dev.paraspatil.luminaai.data.local.MessageSender
 import dev.paraspatil.luminaai.domain.pipeline.ChatState
 import dev.paraspatil.luminaai.domain.pipeline.ChatPipeline
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -22,15 +25,41 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     // We expose the ChatState from our State Machine to the UI
     val chatState: StateFlow<ChatState> = chatPipeline.chatState
 
-    // 1. Load Chat History from Room (Pagination support as requested: Limit 20)
-    // For simplicity in this demo, we just fetch the first 20.
-    // In a full production app, you'd use Jetpack Paging 3 here.
-    val chatHistory: StateFlow<List<ChatMessage>> = chatDao.getChatHistory(limit = 20, offset = 0)
+    // Keep track of how many items to load for Pagination
+    private val currentLimit = MutableStateFlow(20)
+
+    // 1. Load Chat History with dynamic pagination
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val chatHistory: StateFlow<List<ChatMessage>> = currentLimit
+        .flatMapLatest { limit ->
+            chatDao.getChatHistory(limit = limit, offset = 0)
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    init {
+        viewModelScope.launch {
+            chatPipeline.chatState.collect { state ->
+                if (state is ChatState.Responding) {
+                    chatDao.insertMessage(
+                        ChatMessage(
+                            sender = MessageSender.ASSISTANT,
+                            messageText = state.partialMessage,
+                            meta = MessageMeta()
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    // Called from HomeScreen when the user scrolls to the top
+    fun loadMoreMessages() {
+        currentLimit.value += 20
+    }
 
     // 2. Send Message through Pipeline and save to Room
     fun sendMessage(text: String) {
@@ -49,20 +78,5 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
         // Trigger the State Machine Pipeline
         chatPipeline.sendMessage(text, viewModelScope)
-
-        // We also need to listen for the pipeline's response and save that to Room!
-        viewModelScope.launch {
-            chatPipeline.chatState.collect { state ->
-                if (state is ChatState.Responding) {
-                    chatDao.insertMessage(
-                        ChatMessage(
-                            sender = MessageSender.ASSISTANT,
-                            messageText = state.partialMessage,
-                            meta = MessageMeta()
-                        )
-                    )
-                }
-            }
-        }
     }
 }

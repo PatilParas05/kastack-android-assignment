@@ -50,14 +50,16 @@ fun HomeScreen(
     val audioRecorderHelper = remember { AudioRecorderHelper() }
     val listState = rememberLazyListState()
 
-    // Collect Audio Amplitude when listening
-    LaunchedEffect(isListening) {
-        if (isListening) {
-            audioRecorderHelper.getAmplitudeFlow().collectLatest { amp ->
-                audioAmplitude = amp
-            }
-        } else {
-            audioAmplitude = 0f
+    val isAtEnd by remember {
+        derivedStateOf {
+            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
+            lastVisibleItem?.index != 0 && lastVisibleItem?.index == listState.layoutInfo.totalItemsCount - 1
+        }
+    }
+
+    LaunchedEffect(isAtEnd) {
+        if (isAtEnd && chatHistory.size >= 20) {
+            viewModel.loadMoreMessages()
         }
     }
 
@@ -186,29 +188,53 @@ fun HomeScreen(
                         )
                     }
                 }
-
-                // Chat Pipeline Status Indicator
                 item {
                     if (chatState !is ChatState.Idle) {
-                        Text(
-                            text = "Status: ${chatState::class.simpleName}",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                                .alpha(0.6f),
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = if (chatState is ChatState.Error) {
+                                    (chatState as ChatState.Error).errorMessage
+                                } else {
+                                    "Status: ${chatState::class.simpleName}"
+                                },
+                                modifier = Modifier.alpha(if (chatState is ChatState.Error) 1f else 0.6f),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (chatState is ChatState.Error) MaterialTheme.colorScheme.error else Color.Unspecified
+                            )
+
+                            // Add the Retry Option Requirement
+                            if (chatState is ChatState.Error) {
+                                TextButton(onClick = {
+                                    // Retry the last message sent
+                                    chatHistory.firstOrNull()?.let { lastMsg ->
+                                        viewModel.sendMessage(lastMsg.messageText)
+                                    }
+                                }) {
+                                    Text("Retry")
+                                }
+                            }
+                        }
                     }
                 }
 
                 // Chat History List
                 items(chatHistory.reversed()) { message ->
                     val isUser = message.sender == MessageSender.USER
-                    Row(
+
+                    // Format the timestamp (e.g., 10:45 AM)
+                    val formattedTime = remember(message.timestamp) {
+                        java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault())
+                            .format(java.util.Date(message.timestamp))
+                    }
+
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 4.dp),
-                        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+                        horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
                     ) {
                         Box(
                             modifier = Modifier
@@ -224,6 +250,14 @@ fun HomeScreen(
                                 color = if (isUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
+
+                        // New: Timestamp Text
+                        Text(
+                            text = formattedTime,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(top = 2.dp, start = 4.dp, end = 4.dp)
+                        )
                     }
                 }
             }
