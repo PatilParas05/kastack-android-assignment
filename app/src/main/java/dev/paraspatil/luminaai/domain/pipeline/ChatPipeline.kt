@@ -5,7 +5,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class ChatPipeline {
+class ChatPipeline(
+    private val processor: suspend (String) -> String = { message ->
+        // Simulates an AI/Network processing delay
+        // Random delay between 2 and 4 seconds for standard messages
+        delay((2000..4000).random().toLong())
+        "Echo: $message"
+    }
+) {
 
     private val _chatState = MutableStateFlow<ChatState>(ChatState.Idle)
     val chatState: StateFlow<ChatState> = _chatState.asStateFlow()
@@ -40,7 +47,7 @@ class ChatPipeline {
 
                 // withTimeoutOrNull will return null if the block takes longer than 8000ms
                 val response = withTimeoutOrNull(8000L) {
-                    processMessageNetworkCall(message)
+                    processor(message)
                 }
 
                 if (response == null) {
@@ -63,12 +70,5 @@ class ChatPipeline {
                 _chatState.value = ChatState.Error(e.message ?: "Unknown error occurred")
             }
         }
-    }
-
-    // Simulates an AI/Network processing delay
-    private suspend fun processMessageNetworkCall(message: String): String {
-        // Random delay between 2 and 4 seconds for standard messages
-        delay((2000..4000).random().toLong())
-        return "Echo: $message"
     }
 }

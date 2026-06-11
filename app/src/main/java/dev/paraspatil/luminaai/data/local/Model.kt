@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 
-// ============ DATASTORE MODEL ============
+
 // 1. DataStore Profile Model (used for onboarding persistence)
 data class UserProfile(
     val name: String = "",
@@ -14,7 +14,7 @@ data class UserProfile(
     val selectedTraits: List<String> = emptyList()
 )
 
-// ============ ROOM ENTITIES ============
+
 // 2. Room Entity for User Profile
 @Entity(tableName = "user_profiles")
 data class UserProfileEntity(
@@ -72,7 +72,7 @@ class Converters {
         return gson.fromJson(metaString, MessageMeta::class.java)
     }
 
-    // ✅ MessageSender Enum Converter
+    //  MessageSender Enum Converter
     @TypeConverter
     fun fromMessageSender(sender: MessageSender): String {
         return sender.name
@@ -83,7 +83,7 @@ class Converters {
         return MessageSender.valueOf(senderString)
     }
 
-    // ✅ List<String> Converter for traits
+    //  List<String> Converter for traits
     @TypeConverter
     fun fromStringList(list: List<String>): String {
         return gson.toJson(list)

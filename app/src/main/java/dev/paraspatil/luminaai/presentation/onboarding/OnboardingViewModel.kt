@@ -26,7 +26,7 @@ class OnboardingViewModel(
 
     private val dataStore = ProfileDataStore(application)
 
-    // ✅ KEEP STATE IN MEMORY (survives back navigation because ViewModel is kept alive)
+    //  KEEP STATE IN MEMORY (survives back navigation because ViewModel is kept alive)
     private val _uiState = MutableStateFlow(OnboardingUiState())
     val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
 
