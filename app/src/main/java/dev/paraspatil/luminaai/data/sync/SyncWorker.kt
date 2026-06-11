@@ -1,4 +1,4 @@
-package dev.paraspatil.luminaai.domain
+package dev.paraspatil.luminaai.data.sync
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit

@@ -1,4 +1,4 @@
-package dev.paraspatil.luminaai.domain
+package dev.paraspatil.luminaai.domain.pipeline
 
 sealed interface ChatState {
     object Idle : ChatState
