@@ -9,6 +9,8 @@ import dev.paraspatil.luminaai.data.local.MessageMeta
 import dev.paraspatil.luminaai.data.local.MessageSender
 import dev.paraspatil.luminaai.domain.pipeline.ChatState
 import dev.paraspatil.luminaai.domain.pipeline.ChatPipeline
+import dev.paraspatil.luminaai.data.sync.SyncManager
+import dev.paraspatil.luminaai.data.sync.SyncStatus
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,9 +23,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val chatDao = AppDatabase.getDatabase(application).chatDao()
     private val chatPipeline = ChatPipeline()
+    private val syncManager = SyncManager(application)  // ✅ ADD THIS
 
     // We expose the ChatState from our State Machine to the UI
     val chatState: StateFlow<ChatState> = chatPipeline.chatState
+
+    // ✅ EXPOSE SYNC STATUS TO UI
+    val syncStatus: StateFlow<SyncStatus> = syncManager.syncStatus
 
     // Keep track of how many items to load for Pagination
     private val currentLimit = MutableStateFlow(20)

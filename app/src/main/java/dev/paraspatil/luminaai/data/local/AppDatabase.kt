@@ -5,12 +5,21 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-
-@Database(entities = [ChatMessage::class], version = 1, exportSchema = false)
+@Database(
+    entities = [
+        ChatMessage::class,
+        UserProfileEntity::class,
+        Reminder::class
+    ],
+    version = 3,  // ✅ CHANGE FROM 1 TO 2
+    exportSchema = false
+)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun chatDao(): ChatDao
+    abstract fun userProfileDao(): UserProfileDao
+    abstract fun reminderDao(): ReminderDao
 
     companion object {
         @Volatile
@@ -22,7 +31,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "lumina_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

@@ -26,6 +26,7 @@ class OnboardingViewModel(
 
     private val dataStore = ProfileDataStore(application)
 
+    // ✅ KEEP STATE IN MEMORY (survives back navigation because ViewModel is kept alive)
     private val _uiState = MutableStateFlow(OnboardingUiState())
     val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
 
@@ -61,7 +62,7 @@ class OnboardingViewModel(
             _uiState.update { it.copy(errorMessage = "Phone must be exactly 10 digits") }
             return false
         }
-        if (state.otp != "1234") { // Mock OTP requirement
+        if (state.otp != "1234") {
             _uiState.update { it.copy(errorMessage = "Invalid OTP. Use 1234.") }
             return false
         }

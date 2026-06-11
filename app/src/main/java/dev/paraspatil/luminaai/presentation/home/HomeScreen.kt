@@ -63,6 +63,22 @@ fun HomeScreen(
         }
     }
 
+    // ✅ COLLECT AUDIO AMPLITUDE WHEN LISTENING
+    LaunchedEffect(isListening) {
+        if (isListening) {
+            try {
+                audioRecorderHelper.getAmplitudeFlow().collect { amplitude ->
+                    audioAmplitude = amplitude
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                audioAmplitude = 0f
+            }
+        } else {
+            audioAmplitude = 0f  // Reset when not listening
+        }
+    }
+
     // Microphone Permission Launcher
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -184,7 +200,7 @@ fun HomeScreen(
                     ) {
                         AuraCircle(
                             isListening = isListening,
-                            amplitude = audioAmplitude
+                            amplitude = audioAmplitude  // ✅ NOW RECEIVES REAL AMPLITUDE
                         )
                     }
                 }
@@ -251,7 +267,7 @@ fun HomeScreen(
                             )
                         }
 
-                        // New: Timestamp Text
+                        // Timestamp Text
                         Text(
                             text = formattedTime,
                             style = MaterialTheme.typography.labelSmall,
